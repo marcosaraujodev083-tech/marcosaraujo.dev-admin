@@ -14,7 +14,7 @@
 
 ## Blog & News Platform — Admin Panel API
 
-O Admin Panel API é a aplicação backend desenvolvida em Java com Spring Boot 3 responsável pelo gerenciamento de dados, controle de publicações, cálculo de métricas e persistência da plataforma de notícias e notas tech (marcosaraujo.dev).
+O Admin Panel API é a aplicação backend desenvolvida em Java com Spring Boot 3 responsável pelo gerenciamento de dados, controle de publicações, cálculo de métricas e persistência da plataforma de notícias e notas tech (marcosaraujo.dev), essa plataforma foi desenvolvida sob a ideia de ser gerenciada a nivel localhost mesmo, faz o inicio da aplicação, publica gerencia totalmente isolada.
 
 ## Sumário
 
@@ -128,3 +128,30 @@ A API estará rodando por padrão em:
 ```
 http://localhost:8080.
 ```
+
+## Roadmap de Funcionalidades
+
+### Autenticação & Painel Administrativo (Core)
+- [x] CRUD completo de artigos (Criar, Editar, Listar e Deletar)
+- [x] Integração com Supabase (PostgreSQL) para persistência de dados
+- [x] Suporte a Markdown / HTML para o conteúdo dos posts
+- [ ] Implementação de **Tema Escuro (Dark Mode)** no painel e no blog
+- [ ] Painel Dashboard com estatísticas básicas (total de posts, views, assinantes)
+
+### Módulo de Newsletter & Comunicação
+- [ ] Cadastro e gerenciamento de inscritos da newsletter
+- [ ] Criação e rascunho de e-mails para envio em massa
+- [ ] **Integração com API Externa de Disparo** (Orquestração de microsserviço/worker para envio via Mailgun, SendGrid ou Resend)
+- [ ] Histórico de campanhas e e-mails disparados
+
+### Gerenciamento de Agenda, Contatos & Mensagens
+- [ ] Agenda centralizada de contatos (nome, e-mail, notas)
+- [ ] Caixa de entrada interna para mensagens recebidas pelo formulário `/contato`
+- [ ] Status de atendimento para cada mensagem (Pendente, Respondido, Arquivado)
+- [ ] Envio de respostas diretas para contatos via e-mail direto do painel
+
+### Funcionalidades Aconselhadas para o Futuro 
+- [ ] **Gerenciador de Mídia / Upload de Imagens:** Upload direto de imagens de capa para o Supabase Storage.
+- [ ] **Exportação de Dados:** Permitir exportar contatos e inscritos em arquivo CSV/JSON.
+- [ ] **SEO & OpenGraph Dynamic:** Gerador automático de meta tags para redes sociais a partir do título do post.
+- [ ] **API Worker/Bot em Python** (Coletor), monitora e traz possiveis temas em alta para dentro do painel admin.
