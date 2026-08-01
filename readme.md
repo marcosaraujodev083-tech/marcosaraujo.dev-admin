@@ -135,7 +135,7 @@ http://localhost:8080.
 - [x] CRUD completo de artigos (Criar, Editar, Listar e Deletar)
 - [x] Integração com Supabase (PostgreSQL) para persistência de dados
 - [x] Suporte a Markdown / HTML para o conteúdo dos posts
-- [ ] Implementação de **Tema Escuro (Dark Mode)** no painel e no blog
+- [x] Implementação de **Tema Escuro (Dark Mode)** no painel admin
 - [ ] Painel Dashboard com estatísticas básicas (total de posts, views, assinantes)
 
 ### Módulo de Newsletter & Comunicação
