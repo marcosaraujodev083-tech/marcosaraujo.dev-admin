@@ -18,23 +18,14 @@ O Admin Panel API é a aplicação backend desenvolvida em Java com Spring Boot 
 
 ## Sumário
 
-* Visão Geral
-
-* Funcionalidades Principais
-
-* Tecnologias Utilizadas
-
-* Arquitetura do Projeto
-
-* Como Executar o Projeto
-
-* Pré-requisitos
-
-* Variáveis de Ambiente
-
-* Passo a Passo
-
-
+* [Visão Geral](#visão-geral)
+* [Funcionalidades Principais](#funcionalidades-principais)
+* [Tecnologias Utilizadas](#tecnologias-utilizadas)
+* [Arquitetura do Projeto](#arquitetura-do-projeto)
+* [Como Executar o Projeto](#como-executar-o-projeto)
+* [Pré-requisitos](#pré-requisitos)
+* [Variáveis de Ambiente](#variáveis-de-ambiente)
+* [Passo a Passo](#passo-a-passo)
 
 ## Visão Geral
 
