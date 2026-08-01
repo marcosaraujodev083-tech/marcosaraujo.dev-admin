@@ -4,33 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — marcosaraujo.dev admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-[#f8f9fa] text-[#1a1a1a] font-sans antialiased max-w-sm mx-auto min-h-screen flex flex-col justify-center px-4 selection:bg-gray-200">
 
-<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+    <!-- Tailwind CSS com configuração de Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+</head>
+<body class="bg-[#f8f9fa] dark:bg-[#121214] text-[#1a1a1a] dark:text-zinc-100 font-sans antialiased max-w-sm mx-auto min-h-screen flex flex-col justify-center px-4 selection:bg-gray-200 dark:selection:bg-zinc-800 transition-colors duration-200">
+
+<!-- Card de Login com suporte ao Dark Mode -->
+<div class="relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+
+    <!-- ⚡ Fragmento do Botão Dark Mode (Lâmpada) no canto superior direito do card -->
+    <div class="absolute top-4 right-4">
+        <div th:insert="~{fragments/components :: darkModeToggle}"></div>
+    </div>
 
     <!-- Header do Card -->
     <div class="mb-6 text-center">
-        <a href="/" class="shrink-0 inline-block mb-3 rounded-full overflow-hidden w-12 h-12 border border-gray-200">
+        <a href="/" class="shrink-0 inline-block mb-3 rounded-full overflow-hidden w-12 h-12 border border-gray-200 dark:border-zinc-700">
             <img src="https://github.com/marcosaraujodev083-tech.png"
                  alt="Marcos Araújo"
                  class="w-full h-full object-cover">
         </a>
-        <h1 class="text-xl font-bold tracking-tight text-gray-900">
+        <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
             Painel Administrativo
         </h1>
-        <p class="text-xs text-gray-500 font-mono mt-1">
+        <p class="text-xs text-gray-500 dark:text-zinc-400 font-mono mt-1">
             marcosaraujo.dev-admin
         </p>
     </div>
 
     <!-- Alertas do Spring Security -->
-    <div th:if="${param.error}" class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-600 text-xs font-mono">
+    <div th:if="${param.error}" class="mb-4 p-3 rounded bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-mono">
         Usuário ou senha inválidos.
     </div>
 
-    <div th:if="${param.logout}" class="mb-4 p-3 rounded bg-gray-50 border border-gray-200 text-gray-600 text-xs font-mono">
+    <div th:if="${param.logout}" class="mb-4 p-3 rounded bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 text-xs font-mono">
         Sessão encerrada com sucesso.
     </div>
 
@@ -38,26 +49,26 @@
     <form th:action="@{/login}" method="post" class="space-y-4">
 
         <div>
-            <label for="username" class="block text-xs font-mono text-gray-600 mb-1">Usuário</label>
+            <label for="username" class="block text-xs font-mono text-gray-600 dark:text-zinc-400 mb-1">Usuário</label>
             <input type="text"
                    id="username"
                    name="username"
                    required
                    autofocus
-                   class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black font-mono">
+                   class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-zinc-700 bg-transparent rounded-md focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-zinc-100 focus:border-black dark:focus:border-zinc-100 font-mono dark:text-zinc-100">
         </div>
 
         <div>
-            <label for="password" class="block text-xs font-mono text-gray-600 mb-1">Senha</label>
+            <label for="password" class="block text-xs font-mono text-gray-600 dark:text-zinc-400 mb-1">Senha</label>
             <input type="password"
                    id="password"
                    name="password"
                    required
-                   class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black font-mono">
+                   class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-zinc-700 bg-transparent rounded-md focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-zinc-100 focus:border-black dark:focus:border-zinc-100 font-mono dark:text-zinc-100">
         </div>
 
         <button type="submit"
-                class="w-full bg-black text-white text-xs font-mono font-medium py-2 px-4 rounded-md hover:bg-gray-800 transition duration-150">
+                class="w-full bg-black dark:bg-zinc-100 text-white dark:text-black text-xs font-mono font-medium py-2 px-4 rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition duration-150">
             Entrar no Painel →
         </button>
     </form>
@@ -65,7 +76,7 @@
 </div>
 
 <!-- Footer Simples -->
-<footer class="mt-8 text-center text-[11px] text-gray-400 font-mono">
+<footer class="mt-8 text-center text-[11px] text-gray-400 dark:text-zinc-500 font-mono">
     &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> marcosaraujo.dev
 </footer>
 

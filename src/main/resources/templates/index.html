@@ -7,44 +7,43 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Marked JS (Parser de Markdown para HTML) -->
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Marked JS -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <style>
-        /* Estilização para o conteúdo Markdown renderizado dentro do Popover */
-        .preview-content h1, .preview-content h2, .preview-content h3 { font-weight: 700; color: #111827; margin-top: 0.75rem; margin-bottom: 0.35rem; }
-        .preview-content h1 { font-size: 1.125rem; }
-        .preview-content h2 { font-size: 1rem; }
-        .preview-content h3 { font-size: 0.875rem; }
-        .preview-content p { margin-bottom: 0.75rem; font-size: 0.84rem; line-height: 1.5; color: #374151; }
-        .preview-content code { background-color: #f3f4f6; padding: 0.15rem 0.35rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.75rem; color: #1f2937; }
-        .preview-content blockquote { border-left: 3px solid #e5e7eb; padding-left: 0.75rem; color: #6b7280; font-style: italic; margin-bottom: 0.75rem; }
-        .preview-content ul { list-style-type: disc; padding-left: 1.25rem; font-size: 0.84rem; margin-bottom: 0.75rem; }
-        .preview-content ol { list-style-type: decimal; padding-left: 1.25rem; font-size: 0.84rem; margin-bottom: 0.75rem; }
-    </style>
+    <!-- CSS Externo Isolado -->
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
-<body class="bg-[#f8f9fa] text-[#1a1a1a] font-sans antialiased max-w-4xl mx-auto px-4 py-8 selection:bg-gray-200 min-h-screen flex flex-col justify-between">
+<body class="bg-[#f8f9fa] dark:bg-[#121214] text-[#1a1a1a] dark:text-zinc-100 font-sans antialiased max-w-4xl mx-auto px-4 py-8 selection:bg-gray-200 dark:selection:bg-zinc-800 min-h-screen flex flex-col justify-between transition-colors duration-200">
 
 <div>
-    <!-- Navbar Minimalista -->
-    <header class="flex items-center justify-between pb-6 border-b border-gray-200 mb-8">
+    <!-- Navbar Minimalista com Fragmento do Dark Mode -->
+    <header class="flex items-center justify-between pb-6 border-b border-gray-200 dark:border-zinc-800 mb-8">
         <div class="flex items-center gap-3">
-            <a href="/" class="shrink-0 rounded-full overflow-hidden w-9 h-9 border border-gray-200">
+            <a href="/" class="shrink-0 rounded-full overflow-hidden w-9 h-9 border border-gray-200 dark:border-zinc-700">
                 <img src="https://github.com/marcosaraujodev083-tech.png" alt="Marcos Araújo" class="w-full h-full object-cover">
             </a>
             <div>
-                <h1 class="text-sm font-bold tracking-tight text-gray-900">
-                    marcosaraujo.dev <span class="text-xs font-mono font-normal text-gray-400">/ admin</span>
+                <h1 class="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                    marcosaraujo.dev <span class="text-xs font-mono font-normal text-gray-400 dark:text-zinc-500">/ admin</span>
                 </h1>
-                <p class="text-[11px] font-mono text-gray-500">Painel de Gerenciamento</p>
+                <p class="text-[11px] font-mono text-gray-500 dark:text-zinc-400">Painel de Gerenciamento</p>
             </div>
         </div>
 
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="text-xs font-mono text-gray-500 hover:text-red-600 transition duration-150">
-                Sair [→
-            </button>
-        </form>
+        <div class="flex items-center gap-4">
+            <!-- Componente da Lâmpada Retro -->
+            <div th:insert="~{fragments/components :: darkModeToggle}"></div>
+
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="text-xs font-mono text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition duration-150">
+                    Sair [→
+                </button>
+            </form>
+        </div>
     </header>
 
     <!-- Seção Principal -->
@@ -53,75 +52,61 @@
         <!-- Header das Ações Principais -->
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-lg font-bold tracking-tight">Publicações</h2>
-                <p class="text-xs font-mono text-gray-400">Gerencie seus artigos e rascunhos</p>
+                <h2 class="text-lg font-bold tracking-tight dark:text-zinc-100">Publicações</h2>
+                <p class="text-xs font-mono text-gray-400 dark:text-zinc-500">Gerencie seus artigos e rascunhos</p>
             </div>
-            <a href="/posts/new" class="bg-black text-white text-xs font-mono py-2 px-3 rounded-md hover:bg-gray-800 transition duration-150 flex items-center gap-1">
+            <a href="/posts/new" class="bg-black dark:bg-zinc-100 text-white dark:text-black text-xs font-mono py-2 px-3 rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition duration-150 flex items-center gap-1">
                 <span>+</span> Novo Artigo
             </a>
         </div>
 
         <!-- Barra de Busca Instantânea + Filtros Rápidos -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-white p-3 border border-gray-200 rounded-xl shadow-sm">
-            <!-- Campo de Busca -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-3 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm">
             <div class="relative w-full md:w-80">
                 <input type="text" id="searchInput" placeholder="Buscar por título ou slug..."
-                       class="w-full pl-3 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black transition font-mono">
+                       class="w-full pl-3 pr-3 py-1.5 border border-gray-200 dark:border-zinc-700 bg-transparent rounded-lg text-xs focus:outline-none focus:border-black dark:focus:border-zinc-100 transition font-mono dark:text-zinc-100 dark:placeholder-zinc-500">
             </div>
 
-            <!-- Filtros por Categoria/Status (ACRESCENTADO: Agendados) -->
             <div class="flex items-center gap-1 w-full md:w-auto overflow-x-auto text-xs font-mono">
-                <button type="button" class="filter-btn active px-3 py-1.5 rounded-lg bg-black text-white transition" data-filter="all">
-                    Todos
-                </button>
-                <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-gray-500 hover:text-black hover:bg-gray-100 transition" data-filter="published">
-                    Publicados
-                </button>
-                <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-gray-500 hover:text-black hover:bg-gray-100 transition" data-filter="scheduled">
-                    Agendados
-                </button>
-                <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-gray-500 hover:text-black hover:bg-gray-100 transition" data-filter="draft">
-                    Rascunhos
-                </button>
+                <button type="button" class="filter-btn active px-3 py-1.5 rounded-lg bg-black dark:bg-zinc-100 text-white dark:text-black transition" data-filter="all">Todos</button>
+                <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition" data-filter="published">Publicados</button>
+                <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition" data-filter="scheduled">Agendados</button>
+                <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition" data-filter="draft">Rascunhos</button>
             </div>
         </div>
 
         <!-- Tabela/Lista Dinâmica de Posts -->
-        <div class="bg-white border border-gray-200 rounded-xl overflow-visible shadow-sm">
-            <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center text-xs font-mono text-gray-500 rounded-t-xl">
+        <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-visible shadow-sm">
+            <div class="p-4 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 flex justify-between items-center text-xs font-mono text-gray-500 dark:text-zinc-400 rounded-t-xl">
                 <span>Artigo</span>
                 <span>Status / Ações</span>
             </div>
 
-            <div id="postsList" class="divide-y divide-gray-100">
-                <!-- Estado Vazio NATIVO (Sem Posts no BD) -->
-                <div th:if="${#lists.isEmpty(posts)}" class="p-8 text-center text-xs font-mono text-gray-400">
+            <div id="postsList" class="divide-y divide-gray-100 dark:divide-zinc-800">
+                <div th:if="${#lists.isEmpty(posts)}" class="p-8 text-center text-xs font-mono text-gray-400 dark:text-zinc-500">
                     Nenhum artigo publicado ainda. Clique em "+ Novo Artigo" para começar.
                 </div>
 
-                <!-- Iteração de Posts Cadastrados -->
                 <div th:each="post : ${posts}"
-                     class="post-item p-4 flex items-center justify-between hover:bg-gray-50/50 transition"
+                     class="post-item p-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-zinc-800/30 transition"
                      th:data-title="${#strings.toLowerCase(post.title)}"
                      th:data-slug="${#strings.toLowerCase(post.slug)}"
                      th:data-status="${post.draft ? 'draft' : (post.scheduled ? 'scheduled' : 'published')}"
                      th:data-publish-date="${post.publishedAt}">
 
-                    <!-- Área do Título com Hover / Popover Flutuante Interativo -->
                     <div class="relative group space-y-1 cursor-pointer">
-                        <h3 class="post-title text-sm font-semibold text-gray-900 group-hover:text-black transition" th:text="${post.title}">Título</h3>
-                        <p class="post-slug text-xs font-mono text-gray-400" th:text="${'/' + post.slug}">/slug</p>
+                        <h3 class="post-title text-sm font-semibold text-gray-900 dark:text-zinc-100 group-hover:text-black dark:group-hover:text-white transition" th:text="${post.title}">Título</h3>
+                        <p class="post-slug text-xs font-mono text-gray-400 dark:text-zinc-500" th:text="${'/' + post.slug}">/slug</p>
 
-                        <!-- CRONÔMETRO DE AGENDAMENTO (ACRESCENTADO) -->
-                        <div th:if="${post.scheduled}" class="mt-1 text-[11px] font-mono text-amber-600 flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 w-fit">
+                        <div th:if="${post.scheduled}" class="mt-1 text-[11px] font-mono text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-100 dark:border-amber-900/50 w-fit">
                             <span>Será publicado em: <strong class="countdown-timer font-bold">calculando...</strong></span>
                         </div>
 
-                        <!-- Popover Interativo -->
+                        <!-- Popover -->
                         <div class="absolute left-0 top-full pt-2 w-[450px] md:w-[520px] hidden group-hover:block z-50 transition-all duration-200">
-                            <div class="max-h-[380px] overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-2xl p-5 cursor-default">
-                                <div class="text-[11px] font-mono text-gray-400 mb-3 pb-2 border-b border-gray-100 flex justify-between items-center select-none">
-                                    <span class="font-bold text-gray-600">PREVIEW DO ARTIGO</span>
+                            <div class="max-h-[380px] overflow-y-auto bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-2xl p-5 cursor-default">
+                                <div class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 mb-3 pb-2 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center select-none">
+                                    <span class="font-bold text-gray-600 dark:text-zinc-300">PREVIEW DO ARTIGO</span>
                                     <span th:text="${post.readingTimeMinutes + ' min de leitura'}">1 min</span>
                                 </div>
                                 <div class="preview-container">
@@ -133,37 +118,24 @@
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <!-- Badges de Status (ACRESCENTADO: Agendado) -->
                         <div class="flex items-center gap-2">
-                            <span th:if="${post.draft}" class="px-2 py-0.5 text-[10px] font-mono bg-yellow-100 text-yellow-800 rounded">Rascunho</span>
-                            <span th:if="${post.scheduled}" class="px-2 py-0.5 text-[10px] font-mono bg-amber-100 text-amber-800 rounded">Agendado</span>
-                            <span th:if="${post.published}" class="px-2 py-0.5 text-[10px] font-mono bg-green-100 text-green-800 rounded">Publicado</span>
-                            <span class="text-xs font-mono text-gray-400" th:text="${post.readingTimeMinutes + ' min'}">1 min</span>
+                            <span th:if="${post.draft}" class="px-2 py-0.5 text-[10px] font-mono bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 rounded">Rascunho</span>
+                            <span th:if="${post.scheduled}" class="px-2 py-0.5 text-[10px] font-mono bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 rounded">Agendado</span>
+                            <span th:if="${post.published}" class="px-2 py-0.5 text-[10px] font-mono bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded">Publicado</span>
+                            <span class="text-xs font-mono text-gray-400 dark:text-zinc-500" th:text="${post.readingTimeMinutes + ' min'}">1 min</span>
                         </div>
 
-                        <!-- Botões de Ação Perfeitamente Alinhados -->
-                        <div class="flex items-center gap-3 pl-3 border-l border-gray-200">
-                            <!-- Botão Copiar Link -->
-                            <button type="button"
-                                    class="copy-btn text-xs font-mono text-gray-500 hover:text-black transition inline-flex items-center gap-1 leading-none"
-                                    th:data-url="${'https://marcosaraujo.dev/posts/' + post.slug}"
-                                    title="Copiar link direto para a área de transferência">
+                        <div class="flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-zinc-800">
+                            <button type="button" class="copy-btn text-xs font-mono text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 transition inline-flex items-center gap-1 leading-none" th:data-url="${'https://marcosaraujo.dev/posts/' + post.slug}" title="Copiar link">
                                 <span class="btn-text">Copiar</span>
                             </button>
 
-                            <!-- Botão Editar -->
-                            <a th:href="@{/posts/edit/{id}(id=${post.id})}"
-                               class="text-xs font-mono text-gray-600 hover:text-black transition inline-flex items-center leading-none">
+                            <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="text-xs font-mono text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 transition inline-flex items-center leading-none">
                                 Editar
                             </a>
 
-                            <!-- Formulário e Botão Excluir Corrigido -->
-                            <form th:action="@{/posts/delete/{id}(id=${post.id})}"
-                                  method="post"
-                                  class="inline-flex items-center m-0 p-0"
-                                  onsubmit="return confirm('Tem certeza que deseja excluir este artigo?');">
-                                <button type="submit"
-                                        class="text-xs font-mono text-red-500 hover:text-red-700 transition inline-flex items-center leading-none">
+                            <form th:action="@{/posts/delete/{id}(id=${post.id})}" method="post" class="inline-flex items-center m-0 p-0" onsubmit="return confirm('Tem certeza que deseja excluir este artigo?');">
+                                <button type="submit" class="text-xs font-mono text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition inline-flex items-center leading-none">
                                     Excluir
                                 </button>
                             </form>
@@ -171,8 +143,7 @@
                     </div>
                 </div>
 
-                <!-- Mensagem de "Nenhum resultado encontrado na Busca" -->
-                <div id="noResults" class="p-8 text-center text-xs font-mono text-gray-400 hidden">
+                <div id="noResults" class="p-8 text-center text-xs font-mono text-gray-400 dark:text-zinc-500 hidden">
                     Nenhum artigo encontrado para o filtro aplicado.
                 </div>
             </div>
@@ -182,143 +153,12 @@
 </div>
 
 <!-- Footer -->
-<footer class="mt-12 pt-6 border-t border-gray-100 text-center text-[11px] text-gray-400 font-mono">
+<footer class="mt-12 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center text-[11px] text-gray-400 dark:text-zinc-500 font-mono">
     &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> marcosaraujo.dev — Painel Administrativo
 </footer>
 
-<!-- Scripts: Busca Instantânea + Copiar Link + Markdown Render + Cronômetro Regressivo -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // 1. Renderiza os Popovers em Markdown
-        const previewContainers = document.querySelectorAll('.preview-container');
-        previewContainers.forEach(container => {
-            const template = container.querySelector('.raw-markdown');
-            const targetDiv = container.querySelector('.preview-content');
-
-            if (template && targetDiv) {
-                const rawContent = template.innerHTML.trim();
-                if (rawContent) {
-                    targetDiv.innerHTML = marked.parse(rawContent);
-                } else {
-                    targetDiv.innerHTML = '<p class="text-gray-400 italic text-xs">Sem conteúdo disponível para preview.</p>';
-                }
-            }
-        });
-
-        // 2. Busca e Filtro em Tempo Real
-        const searchInput = document.getElementById('searchInput');
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        const postItems = document.querySelectorAll('.post-item');
-        const noResults = document.getElementById('noResults');
-
-        let currentFilter = 'all';
-
-        function applyFilters() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            let visibleCount = 0;
-
-            postItems.forEach(item => {
-                const title = item.getAttribute('data-title') || '';
-                const slug = item.getAttribute('data-slug') || '';
-                const status = item.getAttribute('data-status') || '';
-
-                const matchesSearch = title.includes(searchTerm) || slug.includes(searchTerm);
-                const matchesFilter = (currentFilter === 'all') || (status === currentFilter);
-
-                if (matchesSearch && matchesFilter) {
-                    item.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            if (visibleCount === 0 && postItems.length > 0) {
-                noResults.classList.remove('hidden');
-            } else {
-                noResults.classList.add('hidden');
-            }
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', applyFilters);
-        }
-
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => {
-                    b.classList.remove('active', 'bg-black', 'text-white');
-                    b.classList.add('text-gray-500', 'hover:text-black', 'hover:bg-gray-100');
-                });
-
-                btn.classList.add('active', 'bg-black', 'text-white');
-                btn.classList.remove('text-gray-500', 'hover:text-black', 'hover:bg-gray-100');
-
-                currentFilter = btn.getAttribute('data-filter');
-                applyFilters();
-            });
-        });
-
-        // 3. Funcionalidade de Copiar Link com Feedback Visual
-        const copyBtns = document.querySelectorAll('.copy-btn');
-        copyBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const urlToCopy = this.getAttribute('data-url');
-                const textSpan = this.querySelector('.btn-text');
-
-                navigator.clipboard.writeText(urlToCopy).then(() => {
-                    const originalText = textSpan.textContent;
-                    textSpan.textContent = 'Copiado! ✓';
-                    this.classList.add('text-green-600', 'font-bold');
-
-                    setTimeout(() => {
-                        textSpan.textContent = originalText;
-                        this.classList.remove('text-green-600', 'font-bold');
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Erro ao copiar link: ', err);
-                });
-            });
-        });
-
-        // 4. Lógica do Cronômetro Regressivo para Posts Agendados (ACRESCENTADO)
-        function updateCountdowns() {
-            const scheduledItems = document.querySelectorAll('.post-item[data-status="scheduled"]');
-
-            scheduledItems.forEach(item => {
-                const publishDateStr = item.getAttribute('data-publish-date');
-                const timerElement = item.querySelector('.countdown-timer');
-
-                if (!publishDateStr || !timerElement) return;
-
-                const targetDate = new Date(publishDateStr).getTime();
-                const now = new Date().getTime();
-                const diff = targetDate - now;
-
-                if (diff <= 0) {
-                    timerElement.innerText = "Publicando agora...";
-                    setTimeout(() => window.location.reload(), 3000);
-                    return;
-                }
-
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-                let text = "";
-                if (days > 0) text += `${days}d `;
-                if (hours > 0 || days > 0) text += `${hours}h `;
-                text += `${minutes}m ${seconds}s`;
-
-                timerElement.innerText = text;
-            });
-        }
-
-        setInterval(updateCountdowns, 1000);
-        updateCountdowns();
-    });
-</script>
+<!-- JavaScript Isolado Chamado ao Final -->
+<script th:src="@{/js/dashboard.js}"></script>
 
 </body>
 </html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="darkModeToggle" class="inline-flex items-center">
+    <!-- Botão Lâmpada -->
+    <button id="themeToggleBtn" type="button" title="Alternar Modo Escuro"
+            class="text-gray-400 hover:text-amber-500 dark:text-amber-400 dark:hover:text-amber-300 transition duration-150 p-1 focus:outline-none">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6" />
+            <path d="M10 22h4" />
+            <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26C17.81 13.47 19 11.38 19 9a7 7 0 0 0-7-7z" />
+            <path d="M10 14a3.5 3.5 0 0 0 4 0" />
+        </svg>
+    </button>
+
+    <script>
+        // Configura o Tailwind no JS
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = { darkMode: 'class' };
+        }
+
+        // Verifica tema salvo
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Evento de clique
+        document.getElementById('themeToggleBtn')?.addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
+</div>
+
+</body>
+</html>
