@@ -137,14 +137,3 @@ A API estará rodando por padrão em:
 ```
 http://localhost:8080.
 ```
-
-
-### Autor
-
-Desenvolvido por Marcos Araújo.
-
-GitHub: @marcosaraujodev083-tech
-
-Website: marcosaraujo.dev
-
-Licença MIT — Sinta-se à vontade para contribuir ou utilizar este projeto como referência.
