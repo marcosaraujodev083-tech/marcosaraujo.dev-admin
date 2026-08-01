@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Artigo — marcosaraujo.dev admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- EasyMDE (Editor Markdown com Preview) -->
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+
+    <style>
+        /* Ajustes da barra de ferramentas */
+        .EasyMDEContainer .editor-toolbar {
+            border-color: #e5e7eb;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            background-color: #f9fafb;
+        }
+
+        /* 1. Editor da Esquerda: Código Cru / Plain Text sem estilização dinâmica */
+        .EasyMDEContainer .CodeMirror {
+            border-color: #e5e7eb;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+            font-size: 0.875rem !important;
+            line-height: 1.6 !important;
+            min-height: 400px;
+            color: #1a1a1a;
+        }
+
+        /* Força todas as linhas no editor a terem o mesmo tamanho e peso de fonte (remove o aumento de tamanho do # H1/H2) */
+        .EasyMDEContainer .CodeMirror div,
+        .EasyMDEContainer .CodeMirror span,
+        .EasyMDEContainer .CodeMirror-line {
+            font-size: 0.875rem !important;
+            font-weight: normal !important;
+            font-style: normal !important;
+            text-decoration: none !important;
+        }
+
+        /* Remove o destaque de cor que o CodeMirror põe nas tags de markdown */
+        .EasyMDEContainer .cm-header,
+        .EasyMDEContainer .cm-strong,
+        .EasyMDEContainer .cm-em {
+            font-size: 0.875rem !important;
+            font-weight: normal !important;
+            font-style: normal !important;
+        }
+
+        /* 2. Lado da Direita: Preview Renderizado Bonito */
+        .editor-preview-side, .editor-preview {
+            background-color: #ffffff;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 1.5rem;
+        }
+        .editor-preview-side h1, .editor-preview h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: #111827; }
+        .editor-preview-side h2, .editor-preview h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #1f2937; }
+        .editor-preview-side p, .editor-preview p { margin-bottom: 1rem; line-height: 1.6; color: #374151; }
+        .editor-preview-side code, .editor-preview code { background-color: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.85rem; }
+        .editor-preview-side blockquote, .editor-preview blockquote { border-left: 3px solid #e5e7eb; padding-left: 1rem; color: #6b7280; font-style: italic; margin-bottom: 1rem; }
+    </style>
+
+</head>
+<body class="bg-[#f8f9fa] text-[#1a1a1a] font-sans antialiased max-w-4xl mx-auto px-4 py-8 min-h-screen flex flex-col justify-between">
+
+<div>
+    <!-- Cabeçalho do Form -->
+    <header class="flex items-center justify-between pb-6 border-b border-gray-200 mb-8">
+        <div>
+            <a href="/" class="text-xs font-mono text-gray-400 hover:text-black transition mb-1 inline-block">← Voltar para Dashboard</a>
+            <h1 class="text-xl font-bold tracking-tight text-gray-900" th:text="${post.id == null ? 'Criar Novo Artigo' : 'Editar Artigo'}">
+                Criar Novo Artigo
+            </h1>
+        </div>
+    </header>
+
+    <!-- Formulário -->
+    <main>
+        <form id="postForm" th:action="@{/posts}" th:object="${post}" method="post" class="space-y-6">
+
+            <!-- Campo Oculto ID -->
+            <input type="hidden" th:field="*{id}" />
+
+            <!-- Título & Slug Automático -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="title" class="block text-xs font-mono text-gray-500 mb-1">Título do Artigo</label>
+                    <input type="text" id="title" th:field="*{title}" placeholder="Ex: Introdução ao Spring Boot 3" required
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition">
+                </div>
+
+                <div>
+                    <label for="slug" class="block text-xs font-mono text-gray-500 mb-1">Slug (URL amigável)</label>
+                    <input type="text" id="slug" th:field="*{slug}" placeholder="ex: introducao-ao-spring-boot-3"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono bg-gray-50 focus:outline-none focus:border-black transition">
+                </div>
+            </div>
+
+            <!-- Resumo (Summary) -->
+            <div>
+                <label for="summary" class="block text-xs font-mono text-gray-500 mb-1">Resumo / Subtítulo</label>
+                <textarea id="summary" th:field="*{summary}" rows="2" placeholder="Uma breve descrição sobre o artigo..."
+                          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition"></textarea>
+            </div>
+
+            <!-- Editor Markdown com Preview -->
+            <div>
+                <label for="markdown-editor" class="block text-xs font-mono text-gray-500 mb-1">Conteúdo (Markdown)</label>
+                <textarea id="markdown-editor" th:field="*{content}"></textarea>
+            </div>
+
+            <!-- Opção de Rascunho / Publicado -->
+            <div class="flex items-center gap-2 pt-2">
+                <input type="checkbox" id="draft" th:field="*{draft}" class="rounded border-gray-300 text-black focus:ring-black">
+                <label for="draft" class="text-xs font-mono text-gray-600">Salvar como Rascunho</label>
+            </div>
+
+            <!-- Card de Agendamento de Publicação (ACRÉSCIMO) -->
+            <div id="scheduleCard" class="bg-white p-5 border border-gray-200 rounded-xl space-y-4 shadow-sm transition-all duration-200">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="text-xs font-bold font-mono text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                        Programação & Agendamento
+                    </h3>
+                    <span class="text-[11px] font-mono text-gray-400">Escolha quando o post vai ao ar</span>
+                </div>
+
+                <div id="scheduleInputs" class="space-y-3">
+                    <div class="space-y-1">
+                        <label for="publishedAt" class="text-xs font-mono text-gray-500 block">Data e Hora de Lançamento:</label>
+                        <input type="datetime-local"
+                               id="publishedAt"
+                               name="publishedAt"
+                               th:value="${post.publishedAt != null ? #temporals.format(post.publishedAt, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                               class="w-full md:w-72 p-2 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:border-black transition bg-gray-50/50">
+                    </div>
+
+                    <!-- Atalhos Rápidos -->
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-mono text-gray-400 block">Atalhos rápidos para agendar:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="setSchedule(0)" class="text-[11px] font-mono px-2.5 py-1 bg-gray-100 hover:bg-black hover:text-white transition rounded-md text-gray-600">
+                                Publicar Agora
+                            </button>
+                            <button type="button" onclick="setSchedule(1)" class="text-[11px] font-mono px-2.5 py-1 bg-gray-100 hover:bg-black hover:text-white transition rounded-md text-gray-600">
+                                +1 Hora
+                            </button>
+                            <button type="button" onclick="setSchedule(24)" class="text-[11px] font-mono px-2.5 py-1 bg-gray-100 hover:bg-black hover:text-white transition rounded-md text-gray-600">
+                                Amanhã (mesmo horário)
+                            </button>
+                            <button type="button" onclick="setNextMonday()" class="text-[11px] font-mono px-2.5 py-1 bg-gray-100 hover:bg-black hover:text-white transition rounded-md text-gray-600">
+                                Próxima Segunda (09:00)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+                <a href="/" class="px-4 py-2 text-xs font-mono text-gray-500 hover:text-black transition">Cancelar</a>
+                <button type="submit" class="bg-black text-white text-xs font-mono py-2 px-5 rounded-md hover:bg-gray-800 transition">
+                    Salvar Artigo
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="mt-12 pt-6 border-t border-gray-100 text-center text-[11px] text-gray-400 font-mono">
+    &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> marcosaraujo.dev
+</footer>
+
+<!-- Scripts do Editor, Gerador de Slug e Agendamento -->
+<script>
+
+    const easymde = new EasyMDE({
+        element: document.getElementById('markdown-editor'),
+        spellChecker: false,
+        forceSync: true, // <--- Sincroniza o preview no exato momento da digitação
+        autosave: {
+            enabled: false
+        },
+        placeholder: "Escreva seu conteúdo em Markdown aqui...",
+        renderingConfig: {
+            singleLineBreaks: true, // <--- Torna cada Enter em uma quebra de linha visível (<br>)
+            codeSyntaxHighlighting: true
+        },
+        toolbar: [
+            "bold", "italic", "heading", "|",
+            "quote", "unordered-list", "ordered-list", "|",
+            "link", "code", "table", "|",
+            "preview", "side-by-side", "fullscreen", "|",
+            "guide"
+        ]
+    });
+
+    // Ativa o modo Lado a Lado (Side-by-Side) automaticamente ao carregar a página
+    setTimeout(() => {
+        if (!easymde.isSideBySideActive()) {
+            easymde.toggleSideBySide();
+        }
+    }, 200);
+
+    // Sincroniza o conteúdo digitado no EasyMDE de volta com o textarea do Thymeleaf ao enviar o formulário
+    document.getElementById('postForm').addEventListener('submit', function() {
+        document.getElementById('markdown-editor').value = easymde.value();
+    });
+
+    // Auto-gerador de Slug em tempo real ao digitar o Título
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
+
+    if (titleInput && slugInput) {
+        titleInput.addEventListener('input', () => {
+            if (!slugInput.dataset.userEdited) {
+                slugInput.value = generateSlug(titleInput.value);
+            }
+        });
+
+        slugInput.addEventListener('input', () => {
+            slugInput.dataset.userEdited = "true";
+        });
+    }
+
+    function generateSlug(str) {
+        return str
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9 -]/g, "")
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-");
+    }
+
+    // --- GERENCIAMENTO DE AGENDAMENTO E ATALHOS ---
+    const draftCheckbox = document.getElementById('draft');
+    const scheduleCard = document.getElementById('scheduleCard');
+
+    function toggleScheduleState() {
+        if (draftCheckbox && scheduleCard) {
+            if (draftCheckbox.checked) {
+                scheduleCard.style.opacity = '0.4';
+                scheduleCard.style.pointerEvents = 'none';
+            } else {
+                scheduleCard.style.opacity = '1';
+                scheduleCard.style.pointerEvents = 'auto';
+            }
+        }
+    }
+
+    if (draftCheckbox) {
+        draftCheckbox.addEventListener('change', toggleScheduleState);
+        toggleScheduleState(); // Executa na inicialização
+    }
+
+    function formatToDateTimeInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function setSchedule(hoursAhead) {
+        const date = new Date();
+        date.setHours(date.getHours() + hoursAhead);
+        document.getElementById('publishedAt').value = formatToDateTimeInput(date);
+    }
+
+    function setNextMonday() {
+        const date = new Date();
+        date.setDate(date.getDate() + ((1 + 7 - date.getDay()) % 7 || 7));
+        date.setHours(9, 0, 0, 0); // Preenche para 09:00 AM
+        document.getElementById('publishedAt').value = formatToDateTimeInput(date);
+    }
+</script>
+
+</body>
+</html>
