@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ⚡ SCRIPT ANTI-PISCADA (FOUC PREVENTER) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
+    <title>Newsletter — marcosaraujo.dev admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Marked JS (Para renderizar preview de e-mails em Markdown) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- CSS Externo Isolado do Dashboard -->
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body class="bg-[#f8f9fa] dark:bg-[#121214] text-[#1a1a1a] dark:text-zinc-100 font-sans antialiased max-w-4xl mx-auto px-4 py-8 selection:bg-gray-200 dark:selection:bg-zinc-800 min-h-screen flex flex-col justify-between transition-colors duration-200">
+
+<div>
+    <!-- Navbar Minimalista com Navegação Modular -->
+    <header class="pb-4 border-b border-gray-200 dark:border-zinc-800 mb-8 space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/" class="shrink-0 rounded-full overflow-hidden w-9 h-9 border border-gray-200 dark:border-zinc-700">
+                    <img src="https://github.com/marcosaraujodev083-tech.png" alt="Marcos Araújo" class="w-full h-full object-cover">
+                </a>
+                <div>
+                    <h1 class="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                        marcosaraujo.dev <span class="text-xs font-mono font-normal text-gray-400 dark:text-zinc-500">/ admin</span>
+                    </h1>
+                    <p class="text-[11px] font-mono text-gray-500 dark:text-zinc-400">Painel de Gerenciamento</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Componente da Lâmpada Retro -->
+                <div th:insert="~{fragments/components :: darkModeToggle}"></div>
+
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="text-xs font-mono text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition duration-150">
+                        Sair [→
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ⚡ MENU DE NAVEGAÇÃO DOS MÓDULOS (NEWSLETTER ATIVO) -->
+        <nav class="flex items-center gap-6 pt-2 text-xs font-mono overflow-x-auto">
+            <a href="/" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Artigos
+            </a>
+            <a href="/newsletter" class="text-black dark:text-zinc-100 font-bold border-b-2 border-black dark:border-zinc-100 pb-1.5 transition">
+                Newsletter
+            </a>
+            <a href="/analytics" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Analytics
+            </a>
+            <a href="/settings" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Configurações
+            </a>
+        </nav>
+    </header>
+
+    <!-- Seção Principal -->
+    <main class="space-y-8">
+
+        <!-- 1. Header do Módulo + Ações Rápidas -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold tracking-tight dark:text-zinc-100">Gestão de Newsletter</h2>
+                <p class="text-xs font-mono text-gray-400 dark:text-zinc-500">Acompanhe seus inscritos e envie novidades</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/newsletter/export" class="border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 text-xs font-mono py-2 px-3 rounded-md hover:border-black dark:hover:border-zinc-400 transition duration-150 flex items-center gap-1">
+                    📥 Exportar CSV
+                </a>
+                <a href="/newsletter/send" class="bg-black dark:bg-zinc-100 text-white dark:text-black text-xs font-mono py-2 px-3 rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition duration-150 flex items-center gap-1 font-medium">
+                    <span>✉️</span> Nova Campanha
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Cards de Métricas (KPIs) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm">
+                <span class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">Inscritos Ativos</span>
+                <span class="text-2xl font-bold font-mono dark:text-zinc-100" th:text="${activeSubscribersCount != null ? activeSubscribersCount : 0}">0</span>
+            </div>
+            <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm">
+                <span class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">Novos (Este Mês)</span>
+                <span class="text-2xl font-bold font-mono text-green-600 dark:text-green-400" th:text="${newThisMonthCount != null ? newThisMonthCount : 0}">0</span>
+            </div>
+            <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm">
+                <span class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">Campanhas Enviadas</span>
+                <span class="text-2xl font-bold font-mono dark:text-zinc-100" th:text="${campaignsSentCount != null ? campaignsSentCount : 0}">0</span>
+            </div>
+        </div>
+
+        <!-- 3. Barra de Busca Instantânea + Filtros Rápidos -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-3 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm">
+            <div class="relative w-full md:w-80">
+                <input type="text" id="subscriberSearch" placeholder="Buscar por e-mail..."
+                       class="w-full pl-3 pr-3 py-1.5 border border-gray-200 dark:border-zinc-700 bg-transparent rounded-lg text-xs focus:outline-none focus:border-black dark:focus:border-zinc-100 transition font-mono dark:text-zinc-100 dark:placeholder-zinc-500">
+            </div>
+
+            <div class="flex items-center gap-1 w-full md:w-auto overflow-x-auto text-xs font-mono">
+                <button type="button" class="sub-filter-btn active px-3 py-1.5 rounded-lg bg-black dark:bg-zinc-100 text-white dark:text-black transition" data-filter="all">Todos</button>
+                <button type="button" class="sub-filter-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition" data-filter="ACTIVE">Ativos</button>
+                <button type="button" class="sub-filter-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition" data-filter="UNSUBSCRIBED">Cancelados</button>
+            </div>
+        </div>
+
+        <!-- 4. Tabela de Inscritos -->
+        <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+            <div class="p-4 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 flex justify-between items-center text-xs font-mono text-gray-500 dark:text-zinc-400">
+                <span>E-mail do Leitor</span>
+                <span>Inscrição / Status / Ação</span>
+            </div>
+
+            <div id="subscribersList" class="divide-y divide-gray-100 dark:divide-zinc-800">
+
+                <!-- Estado Vazio -->
+                <div th:if="${#lists.isEmpty(subscribers)}" class="p-8 text-center text-xs font-mono text-gray-400 dark:text-zinc-500">
+                    Nenhum e-mail cadastrado na newsletter até o momento.
+                </div>
+
+                <!-- Loop Thymeleaf dos Assinantes -->
+                <div th:each="sub : ${subscribers}"
+                     class="subscriber-item p-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-zinc-800/30 transition"
+                     th:data-email="${#strings.toLowerCase(sub.email)}"
+                     th:data-status="${sub.status}">
+
+                    <div class="flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full"
+                              th:classappend="${sub.status == 'ACTIVE' ? 'bg-green-500' : 'bg-red-400'}"></span>
+                        <span class="text-xs font-mono font-medium text-gray-900 dark:text-zinc-100" th:text="${sub.email}">usuario@email.com</span>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <time class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 hidden sm:inline"
+                              th:text="${#temporals.format(sub.createdAt, 'dd/MM/yyyy HH:mm')}">30/07/2026 14:00</time>
+
+                        <span th:if="${sub.status == 'ACTIVE'}" class="px-2 py-0.5 text-[10px] font-mono bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded">Ativo</span>
+                        <span th:if="${sub.status == 'UNSUBSCRIBED'}" class="px-2 py-0.5 text-[10px] font-mono bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 rounded">Cancelado</span>
+
+                        <!-- Form de Exclusão/Desativação -->
+                        <form th:action="@{/newsletter/delete/{id}(id=${sub.id})}" method="post" class="inline-flex items-center m-0 pl-2 border-l border-gray-200 dark:border-zinc-800" onsubmit="return confirm('Deseja realmente remover este e-mail?');">
+                            <button type="submit" class="text-xs font-mono text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition">
+                                Remover
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="mt-12 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center text-[11px] text-gray-400 dark:text-zinc-500 font-mono">
+    &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> marcosaraujo.dev — Painel Administrativo
+</footer>
+
+<!-- JS para busca e filtros de e-mails na tabela -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('subscriberSearch');
+        const filterBtns = document.querySelectorAll('.sub-filter-btn');
+        const items = document.querySelectorAll('.subscriber-item');
+
+        let currentFilter = 'all';
+
+        function filterList() {
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            items.forEach(item => {
+                const email = item.getAttribute('data-email');
+                const status = item.getAttribute('data-status');
+
+                const matchesSearch = email.includes(query);
+                const matchesStatus = currentFilter === 'all' || status === currentFilter;
+
+                if (matchesSearch && matchesStatus) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', filterList);
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-black', 'dark:bg-zinc-100', 'text-white', 'dark:text-black', 'active');
+                    b.classList.add('text-gray-500', 'dark:text-zinc-400');
+                });
+
+                btn.classList.add('bg-black', 'dark:bg-zinc-100', 'text-white', 'dark:text-black', 'active');
+                btn.classList.remove('text-gray-500', 'dark:text-zinc-400');
+
+                currentFilter = btn.getAttribute('data-filter');
+                filterList();
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

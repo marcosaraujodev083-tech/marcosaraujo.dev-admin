@@ -34,30 +34,51 @@
 <body class="bg-[#f8f9fa] dark:bg-[#121214] text-[#1a1a1a] dark:text-zinc-100 font-sans antialiased max-w-4xl mx-auto px-4 py-8 selection:bg-gray-200 dark:selection:bg-zinc-800 min-h-screen flex flex-col justify-between transition-colors duration-200">
 
 <div>
-    <!-- Navbar Minimalista com Fragmento do Dark Mode -->
-    <header class="flex items-center justify-between pb-6 border-b border-gray-200 dark:border-zinc-800 mb-8">
-        <div class="flex items-center gap-3">
-            <a href="/" class="shrink-0 rounded-full overflow-hidden w-9 h-9 border border-gray-200 dark:border-zinc-700">
-                <img src="https://github.com/marcosaraujodev083-tech.png" alt="Marcos Araújo" class="w-full h-full object-cover">
-            </a>
-            <div>
-                <h1 class="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-                    marcosaraujo.dev <span class="text-xs font-mono font-normal text-gray-400 dark:text-zinc-500">/ admin</span>
-                </h1>
-                <p class="text-[11px] font-mono text-gray-500 dark:text-zinc-400">Painel de Gerenciamento</p>
+    <!-- Navbar Minimalista com Navegação Modular -->
+    <header class="pb-4 border-b border-gray-200 dark:border-zinc-800 mb-8 space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/" class="shrink-0 rounded-full overflow-hidden w-9 h-9 border border-gray-200 dark:border-zinc-700">
+                    <img src="https://github.com/marcosaraujodev083-tech.png" alt="Marcos Araújo" class="w-full h-full object-cover">
+                </a>
+                <div>
+                    <h1 class="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                        marcosaraujo.dev <span class="text-xs font-mono font-normal text-gray-400 dark:text-zinc-500">/ admin</span>
+                    </h1>
+                    <p class="text-[11px] font-mono text-gray-500 dark:text-zinc-400">Painel de Gerenciamento</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Componente da Lâmpada Retro -->
+                <div th:insert="~{fragments/components :: darkModeToggle}"></div>
+
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="text-xs font-mono text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition duration-150">
+                        Sair [→
+                    </button>
+                </form>
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <!-- Componente da Lâmpada Retro -->
-            <div th:insert="~{fragments/components :: darkModeToggle}"></div>
+        <!-- ⚡ MENU DE NAVEGAÇÃO DOS MÓDULOS -->
+        <nav class="flex items-center gap-6 pt-2 text-xs font-mono overflow-x-auto">
+            <a href="/" class="text-black dark:text-zinc-100 font-bold border-b-2 border-black dark:border-zinc-100 pb-1.5 transition">
+                Artigos
+            </a>
 
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="text-xs font-mono text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition duration-150">
-                    Sair [→
-                </button>
-            </form>
-        </div>
+            <!-- ⚡ Rota absoluta para a Newsletter -->
+            <a href="/newsletter" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Newsletter
+            </a>
+
+            <a href="/analytics" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Analytics
+            </a>
+            <a href="/settings" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Configurações
+            </a>
+        </nav>
     </header>
 
     <!-- Seção Principal -->

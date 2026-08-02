@@ -139,7 +139,7 @@ http://localhost:8080.
 - [ ] Painel Dashboard com estatísticas básicas (total de posts, views, assinantes)
 
 ### Módulo de Newsletter & Comunicação
-- [ ] Cadastro e gerenciamento de inscritos da newsletter
+- [x] Cadastro e gerenciamento de inscritos da newsletter
 - [ ] Criação e rascunho de e-mails para envio em massa
 - [ ] **Integração com API Externa de Disparo** (Orquestração de microsserviço/worker para envio via Mailgun, SendGrid ou Resend)
 - [ ] Histórico de campanhas e e-mails disparados
