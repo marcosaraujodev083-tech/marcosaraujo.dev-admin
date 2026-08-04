@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ⚡ SCRIPT ANTI-PISCADA (Executa antes do navegador desenhar a tela) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
+    <title>Curadoria & Esteiras de IA | Admin marcosaraujo.dev</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- SDK do Supabase para WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- CSS Externo Isolado -->
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body class="bg-[#f8f9fa] dark:bg-[#121214] text-[#1a1a1a] dark:text-zinc-100 font-sans antialiased max-w-4xl mx-auto px-4 py-8 selection:bg-gray-200 dark:selection:bg-zinc-800 min-h-screen flex flex-col justify-between transition-colors duration-200">
+
+<div>
+    <!-- Navbar Minimalista Padrão do Projeto com Navegação Modular -->
+    <header class="pb-4 border-b border-gray-200 dark:border-zinc-800 mb-8 space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/" class="shrink-0 rounded-full overflow-hidden w-9 h-9 border border-gray-200 dark:border-zinc-700">
+                    <img src="https://github.com/marcosaraujodev083-tech.png" alt="Marcos Araújo" class="w-full h-full object-cover">
+                </a>
+                <div>
+                    <h1 class="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                        marcosaraujo.dev <span class="text-xs font-mono font-normal text-gray-400 dark:text-zinc-500">/ admin</span>
+                    </h1>
+                    <p class="text-[11px] font-mono text-gray-500 dark:text-zinc-400">Esteira de Curadoria & IA</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Componente da Lâmpada Retro -->
+                <div th:insert="~{fragments/components :: darkModeToggle}"></div>
+
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="text-xs font-mono text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition duration-150">
+                        Sair [→
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ⚡ MENU DE NAVEGAÇÃO DOS MÓDULOS -->
+        <nav class="flex items-center gap-6 pt-2 text-xs font-mono overflow-x-auto">
+            <a href="/" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Artigos
+            </a>
+            <a href="/curadoria" class="text-black dark:text-zinc-100 font-bold border-b-2 border-black dark:border-zinc-100 pb-1.5 transition">
+                Curadoria
+            </a>
+            <a href="/newsletter" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Newsletter
+            </a>
+            <a href="/analytics" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Analytics
+            </a>
+            <a href="/settings" class="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200 pb-1.5 border-b-2 border-transparent transition">
+                Configurações
+            </a>
+        </nav>
+    </header>
+
+    <!-- Conteúdo Principal do Inbox / Curadoria -->
+    <main class="space-y-6">
+
+        <!-- 1. Header Interno do Módulo -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <h2 class="text-lg font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                        Inbox de Coleta & IA
+                    </h2>
+                    <span id="realtime-status" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        API Active
+                    </span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-zinc-400 mt-1 font-mono">
+                    Notícias do Python com esteiras automatizadas via Gemini 2.5
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Cards de Métricas Rápidas -->
+        <div class="grid grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm">
+                <span class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 block">Total Carregado</span>
+                <span id="count-pending" class="text-xl font-bold text-gray-900 dark:text-zinc-100 mt-0.5 block">0</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm">
+                <span class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 block">Esteiras Processadas</span>
+                <span id="count-approved" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">0</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm">
+                <span class="text-[11px] font-mono text-gray-400 dark:text-zinc-500 block">Motor de IA</span>
+                <span class="text-xl font-bold text-blue-600 dark:text-blue-400 mt-0.5 block">Gemini 2.5</span>
+            </div>
+        </div>
+
+        <!-- 3. Navegação por Categorias (Abas de Filtro do Controller) -->
+        <div class="flex items-center justify-between gap-4 pb-2 border-b border-gray-200 dark:border-zinc-800">
+            <div class="flex items-center space-x-1 font-mono text-xs overflow-x-auto">
+
+                <button type="button" onclick="carregarPorCategoria('TODAS', this)"
+                        class="tab-btn px-3 py-1.5 rounded-lg bg-black dark:bg-zinc-100 text-white dark:text-black font-semibold shadow-sm transition">
+                    Todas
+                </button>
+
+                <button type="button" onclick="carregarPorCategoria('Tecnologia', this)"
+                        class="tab-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition">
+                    Tecnologia
+                </button>
+
+                <button type="button" onclick="carregarPorCategoria('Economia', this)"
+                        class="tab-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition">
+                    Economia
+                </button>
+
+                <button type="button" onclick="carregarPorCategoria('Política', this)"
+                        class="tab-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition">
+                    Política
+                </button>
+
+                <button type="button" onclick="carregarPorCategoria('Geral', this)"
+                        class="tab-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition">
+                    Geral
+                </button>
+
+            </div>
+        </div>
+
+        <!-- 4. Feed de Notícias Dinâmico -->
+        <section id="news-feed" class="space-y-4">
+            <div id="loading-spinner" class="text-center py-8 font-mono text-xs text-gray-400">
+                Carregando matérias da esteira...
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- 5. MODAL DE EXIBIÇÃO DE CONTEÚDO GERADO PELA IA -->
+<div id="ai-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-zinc-800">
+            <h3 id="modal-title" class="text-sm font-bold font-mono text-gray-900 dark:text-zinc-100">
+                Conteúdo Gerado por IA
+            </h3>
+            <button onclick="fecharModal()" class="text-gray-400 hover:text-black dark:hover:text-white font-mono text-xs">
+                [Fechar ✕]
+            </button>
+        </div>
+
+        <div class="py-4 overflow-y-auto flex-1">
+            <pre id="modal-body" class="text-xs font-mono text-gray-700 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80"></pre>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-zinc-800">
+            <button type="button" onclick="copiarConteudoModal()" class="px-3 py-1.5 text-xs font-mono font-medium rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:bg-gray-200 dark:hover:bg-zinc-700 transition">
+                📋 Copiar Conteúdo
+            </button>
+            <button type="button" id="btnAprovarBlog" onclick="aprovarArtigoBlog()" class="hidden px-3 py-1.5 text-xs font-mono font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
+                ✅ Aprovar Conteúdo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Padrão -->
+<footer class="mt-12 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center text-[11px] text-gray-400 dark:text-zinc-500 font-mono">
+    &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> marcosaraujo.dev — Painel Administrativo
+</footer>
+
+<!-- ⚡ JAVASCRIPT DE INTEGRAÇÃO COM O BACKEND JAVA -->
+<script>
+    let currentCategory = 'TODAS';
+    let currentItemId = null; // Guarda o ID da matéria ativa na modal
+
+    // Carrega as notícias assim que a página abre
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarNoticias('TODAS');
+    });
+
+    // Função para alternar abas e buscar do controller Java
+    function carregarPorCategoria(categoria, btnElement) {
+        currentCategory = categoria;
+
+        // Estilização das abas
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition font-mono text-xs';
+        });
+        btnElement.className = 'tab-btn px-3 py-1.5 rounded-lg bg-black dark:bg-zinc-100 text-white dark:text-black font-semibold shadow-sm transition font-mono text-xs';
+
+        carregarNoticias(categoria);
+    }
+
+    // Requisição GET para o CuradoriaController
+    async function carregarNoticias(categoria) {
+        const feed = document.getElementById('news-feed');
+        feed.innerHTML = `<div class="text-center py-8 font-mono text-xs text-gray-400">Buscando notícias...</div>`;
+
+        try {
+            const url = `/api/admin/curadoria/categoria/${categoria}`;
+
+            const response = await fetch(url);
+            const items = await response.json();
+
+            document.getElementById('count-pending').innerText = items.length;
+            renderizarCards(items);
+        } catch (error) {
+            feed.innerHTML = `<div class="text-center py-8 font-mono text-xs text-red-500">Erro ao carregar matérias do servidor Java.</div>`;
+        }
+    }
+
+    // Renderiza cada card de notícia com os botões das esteiras
+    function renderizarCards(items) {
+        const feed = document.getElementById('news-feed');
+
+        if (!items || items.length === 0) {
+            feed.innerHTML = `<div class="text-center py-8 font-mono text-xs text-gray-400">Nenhuma matéria encontrada nesta categoria.</div>`;
+            return;
+        }
+
+        feed.innerHTML = items.map(item => `
+            <article class="p-5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm space-y-3">
+                <div class="flex items-center justify-between text-xs font-mono text-gray-400 dark:text-zinc-500">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold">
+                            ${item.sourceName || item.source_name || 'Fonte'}
+                        </span>
+                        <span>•</span>
+                        <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 font-medium">
+                            ${item.category || 'Geral'}
+                        </span>
+                    </div>
+                    <button onclick="executarCategorizacao(${item.id})" class="text-[11px] text-purple-600 dark:text-purple-400 hover:underline">
+                        🤖 Triar Categoria (Gemini)
+                    </button>
+                </div>
+
+                <h2 class="text-base font-bold text-gray-900 dark:text-zinc-100 leading-snug">
+                    ${item.title}
+                </h2>
+
+                <p class="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed line-clamp-3">
+                    ${item.content || item.description || item.summary || 'Sem conteúdo estendido.'}
+                </p>
+
+                <!-- ESTEIRAS DE PROCESSAMENTO DE IA -->
+                <div class="pt-3 border-t border-gray-100 dark:border-zinc-800/60 flex flex-wrap items-center justify-between gap-2">
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-gray-400 hover:text-black dark:hover:text-white transition">
+                        Ver Original ↗
+                    </a>
+
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button onclick="gerarBlog(${item.id})" class="px-2.5 py-1 text-[11px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/20 hover:bg-emerald-100 transition">
+                            📝 Blog (HTML)
+                        </button>
+                        <button onclick="gerarYouTube(${item.id})" class="px-2.5 py-1 text-[11px] font-mono font-medium bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-md border border-red-500/20 hover:bg-red-100 transition">
+                            🎬 Roteiro YT
+                        </button>
+                        <button onclick="gerarLinkedIn(${item.id})" class="px-2.5 py-1 text-[11px] font-mono font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-md border border-blue-500/20 hover:bg-blue-100 transition">
+                            💼 Post LinkedIn
+                        </button>
+                    </div>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    // 🤖 1. Dispara Auto-Categorização
+    async function executarCategorizacao(id) {
+        try {
+            const res = await fetch(`/api/admin/curadoria/${id}/categorize`, { method: 'POST' });
+            if (res.ok) {
+                carregarNoticias(currentCategory);
+            }
+        } catch (e) {
+            console.error('Erro na categorização:', e);
+        }
+    }
+
+    // 📝 2. Dispara Gerador de Blog
+    async function gerarBlog(id) {
+        currentItemId = id; // Define o ID ativo para a aprovação
+        abrirModal('Gerando Artigo para Blog...', 'Aguarde a resposta do Gemini...', false);
+        try {
+            const res = await fetch(`/api/admin/curadoria/${id}/generate-blog`, { method: 'POST' });
+            const data = await res.json();
+            abrirModal('Artigo de Blog Gerado (HTML)', data.blogContent || 'Conteúdo gerado vazio.', true);
+        } catch (e) {
+            abrirModal('Erro', 'Falha ao conectar com o serviço de IA.', false);
+        }
+    }
+
+    // 🎬 3. Dispara Gerador de YouTube
+    async function gerarYouTube(id) {
+        currentItemId = id;
+        abrirModal('Gerando Roteiro para YouTube...', 'Aguarde a resposta do Gemini...', false);
+        try {
+            const res = await fetch(`/api/admin/curadoria/${id}/generate-youtube`, { method: 'POST' });
+            const data = await res.json();
+            abrirModal('Roteiro Estruturado YouTube (JSON)', data.youtubeScript || 'Conteúdo gerado vazio.', false);
+        } catch (e) {
+            abrirModal('Erro', 'Falha ao conectar com o serviço de IA.', false);
+        }
+    }
+
+    // 💼 4. Dispara Gerador de LinkedIn
+    async function gerarLinkedIn(id) {
+        currentItemId = id;
+        abrirModal('Gerando Post do LinkedIn...', 'Aguarde a resposta do Gemini...', false);
+        try {
+            const res = await fetch(`/api/admin/curadoria/${id}/generate-linkedin`, { method: 'POST' });
+            const data = await res.json();
+            abrirModal('Post Formatado para LinkedIn', data.linkedinContent || 'Conteúdo gerado vazio.', false);
+        } catch (e) {
+            abrirModal('Erro', 'Falha ao conectar com o serviço de IA.', false);
+        }
+    }
+
+    // Funções do Modal
+    function abrirModal(titulo, conteudo, showApproveButton = false) {
+        document.getElementById('modal-title').innerText = titulo;
+        document.getElementById('modal-body').innerText = conteudo;
+
+        const btnApprove = document.getElementById('btnAprovarBlog');
+        if (showApproveButton) {
+            btnApprove.classList.remove('hidden');
+            btnApprove.disabled = false;
+            btnApprove.innerText = '✅ Aprovar Conteúdo';
+        } else {
+            btnApprove.classList.add('hidden');
+        }
+
+        document.getElementById('ai-modal').classList.remove('hidden');
+    }
+
+    function fecharModal() {
+        document.getElementById('ai-modal').classList.add('hidden');
+    }
+
+    function copiarConteudoModal() {
+        const text = document.getElementById('modal-body').innerText;
+        navigator.clipboard.writeText(text);
+        alert('Conteúdo copiado para a área de transferência!');
+    }
+
+    // ✅ Aprova o Artigo de Blog
+    function aprovarArtigoBlog() {
+        if (!currentItemId) return;
+
+        const btn = document.getElementById('btnAprovarBlog');
+        btn.disabled = true;
+        btn.innerText = '⏳ Salvando...';
+
+        fetch(`/api/admin/curadoria/${currentItemId}/approve-blog`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Falha ao aprovar artigo');
+            return response.json();
+        })
+        .then(data => {
+            alert('🎉 Artigo aprovado com sucesso!');
+            fecharModal();
+            carregarNoticias(currentCategory);
+        })
+        .catch(error => {
+            console.error(error);
+            alert('❌ Erro ao aprovar conteúdo');
+            btn.disabled = false;
+            btn.innerText = '✅ Aprovar Conteúdo';
+        });
+    }
+</script>
+</body>
+</html>

@@ -19,9 +19,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // ⚡ CORREÇÃO DO ERRO 403: Ignora a validação CSRF para chamadas de API feitas via Fetch/JS
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                )
                 .authorizeHttpRequests(auth -> auth
                         // Libera arquivos estáticos e a página de login
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/login").permitAll()
+                        // Garante que as rotas de API continuem exigindo usuário logado
+                        .requestMatchers("/api/**").authenticated()
                         // Exige autenticação para qualquer outra rota do admin
                         .anyRequest().authenticated()
                 )
