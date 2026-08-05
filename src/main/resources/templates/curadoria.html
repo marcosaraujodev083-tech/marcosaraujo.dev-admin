@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- 🔒 META TAGS CSRF (Necessário para requisições POST/DELETE no Spring Security) -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
     <!-- ⚡ SCRIPT ANTI-PISCADA (Executa antes do navegador desenhar a tela) -->
     <script>
         (function() {
@@ -187,216 +191,38 @@
     </div>
 </div>
 
+<!-- 🗑️ 6. MODAL DE CONFIRMAÇÃO DE DESCARTE DE NOTÍCIA -->
+<div id="modal-descarte" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-xl">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </div>
+        <h3 class="text-base font-bold text-gray-900 dark:text-zinc-100 mb-1">Descartar notícia?</h3>
+        <p class="text-xs text-gray-500 dark:text-zinc-400 mb-6 font-mono">Esta ação removerá o conteúdo permanentemente da sua esteira.</p>
+
+        <div class="flex items-center gap-3 font-mono text-xs">
+            <button type="button" onclick="fecharModalDescarte()" class="flex-1 py-2 font-medium rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
+                Cancelar
+            </button>
+            <button type="button" onclick="executarExclusao()" class="flex-1 py-2 font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white transition shadow-sm">
+                Sim, descartar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Footer Padrão -->
 <footer class="mt-12 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center text-[11px] text-gray-400 dark:text-zinc-500 font-mono">
     &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> marcosaraujo.dev — Painel Administrativo
 </footer>
 
-<!-- ⚡ JAVASCRIPT DE INTEGRAÇÃO COM O BACKEND JAVA -->
-<script>
-    let currentCategory = 'TODAS';
-    let currentItemId = null; // Guarda o ID da matéria ativa na modal
+<!-- ⚡ JAVASCRIPT SEPARADO POR RESPONSABILIDADES -->
+<!-- 1. Script Base (Modais, utilitários globais e CSRF) -->
+<script th:src="@{/js/curadoria.js}"></script>
+<!-- 2. Script do Módulo Inbox (Notícias, filtros e esteiras) -->
+<script th:src="@{/js/curadoria-inbox.js}"></script>
 
-    // Carrega as notícias assim que a página abre
-    document.addEventListener('DOMContentLoaded', () => {
-        carregarNoticias('TODAS');
-    });
-
-    // Função para alternar abas e buscar do controller Java
-    function carregarPorCategoria(categoria, btnElement) {
-        currentCategory = categoria;
-
-        // Estilização das abas
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition font-mono text-xs';
-        });
-        btnElement.className = 'tab-btn px-3 py-1.5 rounded-lg bg-black dark:bg-zinc-100 text-white dark:text-black font-semibold shadow-sm transition font-mono text-xs';
-
-        carregarNoticias(categoria);
-    }
-
-    // Requisição GET para o CuradoriaController
-    async function carregarNoticias(categoria) {
-        const feed = document.getElementById('news-feed');
-        feed.innerHTML = `<div class="text-center py-8 font-mono text-xs text-gray-400">Buscando notícias...</div>`;
-
-        try {
-            const url = `/api/admin/curadoria/categoria/${categoria}`;
-
-            const response = await fetch(url);
-            const items = await response.json();
-
-            document.getElementById('count-pending').innerText = items.length;
-            renderizarCards(items);
-        } catch (error) {
-            feed.innerHTML = `<div class="text-center py-8 font-mono text-xs text-red-500">Erro ao carregar matérias do servidor Java.</div>`;
-        }
-    }
-
-    // Renderiza cada card de notícia com os botões das esteiras
-    function renderizarCards(items) {
-        const feed = document.getElementById('news-feed');
-
-        if (!items || items.length === 0) {
-            feed.innerHTML = `<div class="text-center py-8 font-mono text-xs text-gray-400">Nenhuma matéria encontrada nesta categoria.</div>`;
-            return;
-        }
-
-        feed.innerHTML = items.map(item => `
-            <article class="p-5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm space-y-3">
-                <div class="flex items-center justify-between text-xs font-mono text-gray-400 dark:text-zinc-500">
-                    <div class="flex items-center space-x-2">
-                        <span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold">
-                            ${item.sourceName || item.source_name || 'Fonte'}
-                        </span>
-                        <span>•</span>
-                        <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 font-medium">
-                            ${item.category || 'Geral'}
-                        </span>
-                    </div>
-                    <button onclick="executarCategorizacao(${item.id})" class="text-[11px] text-purple-600 dark:text-purple-400 hover:underline">
-                        🤖 Triar Categoria (Gemini)
-                    </button>
-                </div>
-
-                <h2 class="text-base font-bold text-gray-900 dark:text-zinc-100 leading-snug">
-                    ${item.title}
-                </h2>
-
-                <p class="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed line-clamp-3">
-                    ${item.content || item.description || item.summary || 'Sem conteúdo estendido.'}
-                </p>
-
-                <!-- ESTEIRAS DE PROCESSAMENTO DE IA -->
-                <div class="pt-3 border-t border-gray-100 dark:border-zinc-800/60 flex flex-wrap items-center justify-between gap-2">
-                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-gray-400 hover:text-black dark:hover:text-white transition">
-                        Ver Original ↗
-                    </a>
-
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <button onclick="gerarBlog(${item.id})" class="px-2.5 py-1 text-[11px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/20 hover:bg-emerald-100 transition">
-                            📝 Blog (HTML)
-                        </button>
-                        <button onclick="gerarYouTube(${item.id})" class="px-2.5 py-1 text-[11px] font-mono font-medium bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-md border border-red-500/20 hover:bg-red-100 transition">
-                            🎬 Roteiro YT
-                        </button>
-                        <button onclick="gerarLinkedIn(${item.id})" class="px-2.5 py-1 text-[11px] font-mono font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-md border border-blue-500/20 hover:bg-blue-100 transition">
-                            💼 Post LinkedIn
-                        </button>
-                    </div>
-                </div>
-            </article>
-        `).join('');
-    }
-
-    // 🤖 1. Dispara Auto-Categorização
-    async function executarCategorizacao(id) {
-        try {
-            const res = await fetch(`/api/admin/curadoria/${id}/categorize`, { method: 'POST' });
-            if (res.ok) {
-                carregarNoticias(currentCategory);
-            }
-        } catch (e) {
-            console.error('Erro na categorização:', e);
-        }
-    }
-
-    // 📝 2. Dispara Gerador de Blog
-    async function gerarBlog(id) {
-        currentItemId = id; // Define o ID ativo para a aprovação
-        abrirModal('Gerando Artigo para Blog...', 'Aguarde a resposta do Gemini...', false);
-        try {
-            const res = await fetch(`/api/admin/curadoria/${id}/generate-blog`, { method: 'POST' });
-            const data = await res.json();
-            abrirModal('Artigo de Blog Gerado (HTML)', data.blogContent || 'Conteúdo gerado vazio.', true);
-        } catch (e) {
-            abrirModal('Erro', 'Falha ao conectar com o serviço de IA.', false);
-        }
-    }
-
-    // 🎬 3. Dispara Gerador de YouTube
-    async function gerarYouTube(id) {
-        currentItemId = id;
-        abrirModal('Gerando Roteiro para YouTube...', 'Aguarde a resposta do Gemini...', false);
-        try {
-            const res = await fetch(`/api/admin/curadoria/${id}/generate-youtube`, { method: 'POST' });
-            const data = await res.json();
-            abrirModal('Roteiro Estruturado YouTube (JSON)', data.youtubeScript || 'Conteúdo gerado vazio.', false);
-        } catch (e) {
-            abrirModal('Erro', 'Falha ao conectar com o serviço de IA.', false);
-        }
-    }
-
-    // 💼 4. Dispara Gerador de LinkedIn
-    async function gerarLinkedIn(id) {
-        currentItemId = id;
-        abrirModal('Gerando Post do LinkedIn...', 'Aguarde a resposta do Gemini...', false);
-        try {
-            const res = await fetch(`/api/admin/curadoria/${id}/generate-linkedin`, { method: 'POST' });
-            const data = await res.json();
-            abrirModal('Post Formatado para LinkedIn', data.linkedinContent || 'Conteúdo gerado vazio.', false);
-        } catch (e) {
-            abrirModal('Erro', 'Falha ao conectar com o serviço de IA.', false);
-        }
-    }
-
-    // Funções do Modal
-    function abrirModal(titulo, conteudo, showApproveButton = false) {
-        document.getElementById('modal-title').innerText = titulo;
-        document.getElementById('modal-body').innerText = conteudo;
-
-        const btnApprove = document.getElementById('btnAprovarBlog');
-        if (showApproveButton) {
-            btnApprove.classList.remove('hidden');
-            btnApprove.disabled = false;
-            btnApprove.innerText = '✅ Aprovar Conteúdo';
-        } else {
-            btnApprove.classList.add('hidden');
-        }
-
-        document.getElementById('ai-modal').classList.remove('hidden');
-    }
-
-    function fecharModal() {
-        document.getElementById('ai-modal').classList.add('hidden');
-    }
-
-    function copiarConteudoModal() {
-        const text = document.getElementById('modal-body').innerText;
-        navigator.clipboard.writeText(text);
-        alert('Conteúdo copiado para a área de transferência!');
-    }
-
-    // ✅ Aprova o Artigo de Blog
-    function aprovarArtigoBlog() {
-        if (!currentItemId) return;
-
-        const btn = document.getElementById('btnAprovarBlog');
-        btn.disabled = true;
-        btn.innerText = '⏳ Salvando...';
-
-        fetch(`/api/admin/curadoria/${currentItemId}/approve-blog`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Falha ao aprovar artigo');
-            return response.json();
-        })
-        .then(data => {
-            alert('🎉 Artigo aprovado com sucesso!');
-            fecharModal();
-            carregarNoticias(currentCategory);
-        })
-        .catch(error => {
-            console.error(error);
-            alert('❌ Erro ao aprovar conteúdo');
-            btn.disabled = false;
-            btn.innerText = '✅ Aprovar Conteúdo';
-        });
-    }
-</script>
 </body>
 </html>

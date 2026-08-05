@@ -20,7 +20,7 @@ public class CuradoriaController {
 
     private final CuratedItemAutomationService automationService;
     private final CuratedItemRepository repository;
-    private final PostRepository postRepository; // ⚡ Injetando o repositório de Post
+    private final PostRepository postRepository;
 
     public CuradoriaController(
             CuratedItemAutomationService automationService,
@@ -48,6 +48,17 @@ public class CuradoriaController {
     public ResponseEntity<List<CuratedItem>> getPending() {
         List<CuratedItem> items = repository.findByCategoryIsNull();
         return ResponseEntity.ok(items);
+    }
+
+    // 🗑️ EXCLUSÃO / DESCARTE DE NOTÍCIA
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
+        if (!repository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     // ESTEIRAS DE IA

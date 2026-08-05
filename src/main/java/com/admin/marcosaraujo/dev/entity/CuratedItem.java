@@ -17,14 +17,28 @@ public class CuratedItem {
     @Column(nullable = false)
     private String title;
 
+    @Column(name = "subtitle", columnDefinition = "TEXT")
+    private String subtitle;
+
     @Column(nullable = false, unique = true)
     private String url;
 
     @Column(name = "source_name")
     private String sourceName;
 
+    private String author;
+
+    @Column(name = "published_at")
+    private OffsetDateTime publishedAt;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "raw_content", columnDefinition = "TEXT")
+    private String rawContent;
+
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
@@ -39,7 +53,7 @@ public class CuratedItem {
     @Column(name = "blog_content", columnDefinition = "TEXT")
     private String blogContent;
 
-    // ⚡ AJUSTE CRUCIAL: Mapeia a coluna PostgreSQL do tipo JSONB para String no Java
+    // ⚡ Mapeia a coluna PostgreSQL do tipo JSONB para String no Java
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "youtube_script", columnDefinition = "jsonb")
     private String youtubeScript;
@@ -77,6 +91,14 @@ public class CuratedItem {
         this.title = title;
     }
 
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
+    }
+
     public String getUrl() {
         return url;
     }
@@ -93,12 +115,44 @@ public class CuratedItem {
         this.sourceName = sourceName;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public OffsetDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(OffsetDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
     public String getContent() {
         return content;
     }
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getRawContent() {
+        return rawContent;
+    }
+
+    public void setRawContent(String rawContent) {
+        this.rawContent = rawContent;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public OffsetDateTime getCreatedAt() {
